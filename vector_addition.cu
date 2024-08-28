@@ -4,7 +4,7 @@
 #define N 512
 
 __global__ void device_add(int* a, int* b, int *c) {
-    c[blockIdx.x] = a[blockIdx.x] + b[blockIdx.x];
+    c[threadIdx.x] = a[threadIdx.x] + b[threadIdx.x];
 }
 
 void host_add(int* a, int* b, int* c) {
@@ -41,7 +41,7 @@ int main(void) {
     cudaMemcpy(d_a, a, N*sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(d_b, b, N*sizeof(int), cudaMemcpyHostToDevice);
 
-    device_add<<<N,1>>>(d_a, d_b, d_c);
+    device_add<<<1,N>>>(d_a, d_b, d_c);
 
     cudaMemcpy(c, d_c, N * sizeof(int), cudaMemcpyDeviceToHost);
 
