@@ -3,6 +3,10 @@
 
 #define N 512
 
+__global__ void device_add(int* a, int* b, int *c) {
+    c[blockIdx.x] = a[blockIdx.x] + b[blockIdx.x];
+}
+
 void host_add(int* a, int* b, int* c) {
     for(int idx=0;idx<N;idx++) {
         c[idx] = a[idx] + b[idx];
@@ -30,12 +34,14 @@ int main(void) {
     b = (int *)malloc(size); fill_array(b);
     c = (int *)malloc(size);
 
-    cudaMalloc((void *)&d_a, N*sizeof(int));
-    cudaMalloc((void *)&d_b, N*sizeof(int));
-    cudaMalloc((void *)&d_c, N*sizeof(int));
+    cudaMalloc((void **)&d_a, N*sizeof(int));
+    cudaMalloc((void **)&d_b, N*sizeof(int));
+    cudaMalloc((void **)&d_c, N*sizeof(int));
 
     cudaMemcpy(d_a, a, N*sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(d_b, b, N*sizeof(int), cudaMemcpyHostToDevice);
+
+    device_add<<<N,1>>>(d_a, d_b, d_c);
 
     cudaMemcpy(c, d_c, N * sizeof(int), cudaMemcpyDeviceToHost);
 
