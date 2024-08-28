@@ -4,7 +4,8 @@
 #define N 512
 
 __global__ void device_add(int* a, int* b, int *c) {
-    c[threadIdx.x] = a[threadIdx.x] + b[threadIdx.x];
+    int index = threadIdx.x + blockIdx.x * blockDim.x;
+    c[index] = a[index] + b[index];
 }
 
 void host_add(int* a, int* b, int* c) {
@@ -30,6 +31,9 @@ int main(void) {
     int *d_a, *d_b, *d_c;
     int size = N * sizeof(int);
 
+    int threads_per_block = 8;
+    int no_of_blocks = N/threads_per_block;
+
     a = (int *)malloc(size); fill_array(a);
     b = (int *)malloc(size); fill_array(b);
     c = (int *)malloc(size);
@@ -41,7 +45,7 @@ int main(void) {
     cudaMemcpy(d_a, a, N*sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(d_b, b, N*sizeof(int), cudaMemcpyHostToDevice);
 
-    device_add<<<1,N>>>(d_a, d_b, d_c);
+    device_add<<<no_of_blocks,threads_per_block>>>(d_a, d_b, d_c);
 
     cudaMemcpy(c, d_c, N * sizeof(int), cudaMemcpyDeviceToHost);
 
